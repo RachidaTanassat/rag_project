@@ -52,35 +52,3 @@ if __name__ == "__main__":
         print("No results found or no matching results.")
 
 
-
-
-# chat_completion = client.chat.completions.create(
-#     messages=[
-#         {
-#             "role": "user",
-#             "content": "Explain the importance of fast language models",
-#         }
-#     ],
-#     model="llama3-8b-8192",
-# )
-
-# print(chat_completion.choices[0].message.content)
-
-
-# def save_to_chroma(chunks: list[Document]):
-#     db =  Chroma.from_documents(
-#         chunks,
-#         persist_directory=CHROMA_PATH,
-#         embedding_function=get_embedding_function()
-#     )
-#     #add or update the documents
-#     existing_items = db.get(include=[])
-#     existing_ids = set(existing_items["ids"])
-#     print(f"Number of existing documents in the database:{len(existing_ids)}")
-#     new_chunks = []
-#     for chunk in existing_ids:
-#         if chunk.metadata["id"] not in existing_ids:
-#             new_chunks.append(chunk)
-#     new_chunks_ids = [chunk.metadata["id"] for chunk in new_chunks]       
-#     db.add_documents(new_chunks, ids = new_chunks_ids)
-#     db.persist()

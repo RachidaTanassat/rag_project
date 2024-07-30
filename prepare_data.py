@@ -12,9 +12,6 @@ dotenv.load_dotenv()
 DATA_PATH = "data"
 CHROMA_PATH = "chroma_db"
 
-def main():
-    generate_data_store()
-
 def generate_data_store():
     documents = load_documents()
     chunks = split_documents(documents)
@@ -34,17 +31,7 @@ def split_documents(documents: list[Document]):
     chunks = text_splitter.split_documents(documents)
     print(f"Split {len(documents)} documents into {len(chunks)} chunks.")
     
-    document = chunks[1]
-    print(document.page_content)
-    print(document.metadata)
     return chunks
-
-# Initialize the embedding function using Hugging Face Inference API
-inference_api_key = os.environ.get("HUGGING_FACE_API_KEY")
-embedding_function = HuggingFaceInferenceAPIEmbeddings(
-    api_key=inference_api_key,
-    model_name="sentence-transformers/all-MiniLM-l6-v2"
-)
 
 def save_to_chroma(chunks: list[Document]):
     # Remove the existing Chroma database if it exists
@@ -52,6 +39,12 @@ def save_to_chroma(chunks: list[Document]):
         shutil.rmtree(CHROMA_PATH)
     
     # Initialize the Chroma database
+    inference_api_key = os.environ.get("HUGGING_FACE_API_KEY")
+    embedding_function = HuggingFaceInferenceAPIEmbeddings(
+        api_key=inference_api_key,
+        model_name="sentence-transformers/all-MiniLM-l6-v2"
+    )
+    
     db = Chroma(
         persist_directory=CHROMA_PATH,
         embedding_function=embedding_function
@@ -60,34 +53,6 @@ def save_to_chroma(chunks: list[Document]):
     # Add documents to the database
     db.add_documents(chunks)
     print(f"Added {len(chunks)} new chunks to the database.")
-    
+
 if __name__ == '__main__':
-    main()
-
-    
-# def save_to_chroma(chunks: list[Document]):
-#     db =  Chroma.from_documents(
-#         chunks,
-#         persist_directory=CHROMA_PATH,
-#         embedding_function=get_embedding_function()
-#     )
-#     #add or update the documents
-#     existing_items = db.get(include=[])
-#     existing_ids = set(existing_items["ids"])
-#     print(f"Number of existing documents in the database:{len(existing_ids)}")
-#     new_chunks = []
-#     for chunk in existing_ids:
-#         if chunk.metadata["id"] not in existing_ids:
-#             new_chunks.append(chunk)
-#     new_chunks_ids = [chunk.metadata["id"] for chunk in new_chunks]       
-#     db.add_documents(new_chunks, ids = new_chunks_ids)
-#     db.persist()
-
-
-
-
-
-
-
-
-
+    generate_data_store()
