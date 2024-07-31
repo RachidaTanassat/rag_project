@@ -40,7 +40,7 @@ You can set these environment variables in a `.env` file at the root of your pro
 ## Technical Schema
 <img width="776" alt="schema" src="https://github.com/user-attachments/assets/2ffecc84-388e-4e6a-ab46-8aea8b5560c8">
 
-##Demo video
+## Demo video
 
 
 https://github.com/user-attachments/assets/53276e68-e1aa-4d97-8fed-2bdad6d3e88b
