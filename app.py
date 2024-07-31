@@ -1,45 +1,46 @@
 import streamlit as st
 import os
-import dotenv
+import shutil
 import subprocess
-from groq import Groq
-from langchain.prompts import ChatPromptTemplate
-from similarity import search_similar_documents
+import requests
 
-dotenv.load_dotenv()
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-
-PROMPT_TEMPLATE = """
-Answer the question based only on the following context:
-{context}
-
-----
-Answer the question based on the above context: {question}
-"""
+DATA_PATH = "data"
+PREPARE_DATA_SCRIPT = "prepare_data.py"
 
 def main():
     st.title("🦜🔗 RAG App With LangChain")
 
     st.sidebar.header("Settings")
-    
+
     uploaded_file = st.sidebar.file_uploader("Upload your PDF file", type="pdf")
-        
+
     if uploaded_file is not None:
+        # Remove the existing DATA_PATH directory if it exists
+        if os.path.exists(DATA_PATH):
+            shutil.rmtree(DATA_PATH)
+
+        # Create a new DATA_PATH directory
+        os.makedirs(DATA_PATH)
+
+        # Save the uploaded file to the DATA_PATH directory
+        file_path = os.path.join(DATA_PATH, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
         st.write(f"Uploaded file: {uploaded_file.name}")
-        
-        # Process the PDF file (you can add your PDF processing logic here)
+
+        # Run the data preparation script
         st.write("Processing your PDF...")
-        # Assuming `prepare_data.py` processes the PDF and saves necessary data
         result = subprocess.run(
-            ["python", "prepare_data.py"],
+            ["python", PREPARE_DATA_SCRIPT],
             capture_output=True,
             text=True
         )
-        
+
         st.success("Data preparation complete!")
 
     st.header("Chat with Bot 🤖")
-    
+
     # Initialize chat history and text input state
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -72,7 +73,7 @@ def main():
         # Input field and submit button
         query_text = st.text_area("Enter your query:")
         submit_button = st.form_submit_button("Send")
-        
+
         if not uploaded_file:
             st.warning("Please upload your file!", icon="⚠")
 
@@ -82,36 +83,27 @@ def main():
                 'role': 'user',
                 'text': query_text
             })
-            
+
             # Get bot response
             response = query_data(query_text)
-            
+
             # Add bot response to chat history
             st.session_state.chat_history.append({
                 'role': 'bot',
                 'text': response
             })
-            
+
             # Clear the input field
             st.experimental_rerun()
 
 def query_data(query_text):
-    context_text = search_similar_documents(query_text)
-    if not context_text:
-        return "No results found or no matching results"
+    # Replace with the actual endpoint URL
+    response = requests.post("http://localhost:5000/query", json={"query": query_text})
 
-    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    prompt = prompt_template.format(context=context_text, question=query_text)
-
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama3-8b-8192",
-        )
-        response_text = chat_completion.choices[0].message.content
-        return response_text
-    except Exception as e:
-        return f"Error: {str(e)}"
+    if response.status_code == 200:
+        return response.json().get("response", "No response found.")
+    else:
+        return f"Error: {response.status_code} - {response.text}"
 
 if __name__ == "__main__":
     main()
