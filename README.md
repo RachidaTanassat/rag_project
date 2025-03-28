@@ -20,7 +20,7 @@ To run this project locally, follow these steps:
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/your-username/rag-application.git
+    git clone https://github.com/RachidaTanassat/rag_project.git
     ```
 
 
